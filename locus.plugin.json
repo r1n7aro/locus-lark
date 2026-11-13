@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 2,
+  "id": "lark",
+  "name": "飞书 / Lark",
+  "version": "0.1.0",
+  "compatibility": { "projectIndependent": true, "locus": ">=0.9.4 <0.11.0" },
+  "components": {
+    "skills": [{ "id": "lark", "path": "skills/lark" }]
+  },
+  "contributes": {
+    "settings": {
+      "brand": {
+        "type": "enum",
+        "enum": ["feishu", "lark"],
+        "labels": { "feishu": { "en": "Feishu", "zh": "飞书" }, "lark": { "en": "Lark (international)", "zh": "Lark（国际版）" } },
+        "default": "feishu",
+        "toolWritable": true,
+        "title": { "en": "Platform", "zh": "平台" },
+        "description": {
+          "en": "Feishu (open.feishu.cn) or Lark (open.larksuite.com). Creating an app sets it from your tenant.",
+          "zh": "飞书（open.feishu.cn）或 Lark（open.larksuite.com）。一键创建应用时按你的租户自动设置。"
+        }
+      },
+      "appId": {
+        "type": "string",
+        "default": "",
+        "maxLength": 128,
+        "toolWritable": true,
+        "title": { "en": "App ID", "zh": "App ID" },
+        "description": {
+          "en": "The app Locus signs in with. Filled in when you create an app here; enter an existing app's ID (cli_…) to use that one.",
+          "zh": "Locus 用来登录的应用。在这里创建应用时自动填写；也可以填写已有应用的 ID（cli_…）。"
+        }
+      },
+      "appSecret": {
+        "type": "secret",
+        "toolWritable": true,
+        "title": { "en": "App Secret", "zh": "App Secret" },
+        "description": {
+          "en": "Stored in the system keychain and only passed to this plugin's sign-in tool.",
+          "zh": "保存在系统钥匙串中，只交给本插件的登录工具。"
+        }
+      },
+      "userToken": {
+        "type": "secret",
+        "toolWritable": true,
+        "title": { "en": "Sign-in", "zh": "登录凭证" },
+        "description": {
+          "en": "Written by the sign-in; scripts only ever receive short-lived access tokens.",
+          "zh": "由登录流程写入；脚本只拿到短期 access token。"
+        }
+      }
+    },
+    "tools": [
+      {
+        "name": "lark_auth",
+        "description": "Sign-in of the Feishu / Lark plugin, used by locus.lark in the Python SDK. Prefer `await locus.lark.status()` / `locus.lark.login()` in Python over calling it directly. Actions: status, catalog, register (create a personal app), login (device sign-in, returns a link for the user), wait, cancel, logout, forget_app, session (a short-lived access token).",
+        "runtime": "python",
+        "path": "tools/lark_auth.py",
+        "loadMode": "lazy",
+        "pythonDependencies": false,
+        "timeoutMs": 900000,
+        "settings": ["brand", "appId", "appSecret", "userToken"],
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string", "enum": ["status", "catalog", "register", "login", "wait", "cancel", "logout", "forget_app", "session"] },
+            "identity": { "type": "string", "enum": ["user", "bot"], "description": "session: whose token (default user)." },
+            "force": { "type": "boolean", "description": "session: renew the user token even if it looks valid." },
+            "domains": { "type": "array", "items": { "type": "string", "enum": ["wiki", "docs", "drive", "im", "contact", "sheets", "base"] }, "description": "login: permission domains (default all)." },
+            "optional": { "type": "array", "items": { "type": "string", "enum": ["send_as_user", "chat_admin", "contact_lookup", "wiki_rename"] }, "description": "login: optional permission groups." },
+            "scopes": { "type": "array", "items": { "type": "string" }, "description": "login: extra scopes." },
+            "open": { "type": "boolean", "description": "register / login: open the link in the browser." },
+            "timeoutSeconds": { "type": "integer", "minimum": 1, "maximum": 840, "description": "wait: how long to wait (default 120)." }
+          },
+          "required": ["action"]
+        }
+      }
+    ],
+    "python": {
+      "dependencies": ["httpx>=0.27,<1"],
+      "namespace": { "name": "lark", "path": "python/locus_lark" }
+    },
+    "client": {
+      "entry": "client/index.ts",
+      "contributions": [{ "slot": "settings.plugin.page", "id": "account" }]
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "schema": "locus.skill.v1",
+  "id": "lark",
+  "name": "飞书 / Lark",
+  "version": "0.1.0",
+  "description": "Use when a task reads or writes Feishu / Lark (飞书) content with locus.lark in Python: wiki, docs, sheets, bases, drive files, comments, sharing, chats, messages. Ignore other chat or document services.",
+  "injectMode": "excerpt"
+}
